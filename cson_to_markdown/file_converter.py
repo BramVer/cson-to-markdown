@@ -4,7 +4,7 @@ from pathlib import Path
 import attr
 
 from cson_to_markdown.extractor import Extractor
-from cson_to_markdown.writer import Writer
+from cson_to_markdown.writer import MarkdownWriter, MetadataWriter
 
 CSON_EXTENSION = ".cson"
 MARKDOWN_EXTENSION = ".md"
@@ -17,6 +17,7 @@ class ContentHolder:
     content = attr.ib()
     name = attr.ib()
     extension = attr.ib()
+    writer_klass = attr.ib()
 
     @property
     def filename(self):
@@ -24,7 +25,7 @@ class ContentHolder:
 
 
 class FileConverter:
-    def __init__(self, og_path, new_path=None):
+    def __init__(self, og_path=None, new_path=None):
         self.og_path = og_path
         self.new_path = new_path or self.og_path
 
@@ -43,19 +44,28 @@ class FileConverter:
         with open(path, "r") as f:
             return f.readlines()
 
+    def _export_new_content(self, holder):
+        writer_klass = holder.writer_klass
+
+        writer = writer_klass(holder.filename, self.new_path, holder.content)
+        writer.write()
+
     def _handle_cson_content(self, content):
         extr = Extractor(content)
         basename = extr.get_filename()
-        meta_path = "{METADATA_SUB_FOLDER}/{basename}"
+        meta_path = f"{METADATA_SUB_FOLDER}/{basename}"
 
         holders = [
-            ContentHolder(extr.extract_markdown(), basename, MARKDOWN_EXTENSION),
-            ContentHolder(extr.extract_metadata(), meta_path, METADATA_EXTENSION),
+            ContentHolder(
+                extr.extract_markdown(), basename, MARKDOWN_EXTENSION, MarkdownWriter
+            ),
+            ContentHolder(
+                extr.extract_metadata(), meta_path, METADATA_EXTENSION, MetadataWriter
+            ),
         ]
 
         for h in holders:
-            writer = Writer(h.filename, self.new_path, h.content)
-            writer.write()
+            self._export_new_content(h)
 
     def _walk_over_files_in_directory_recursively(self):
         recursive_path_generator = self._get_all_files_top_down()

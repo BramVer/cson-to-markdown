@@ -1,20 +1,18 @@
 import os
 
-import yaml
-
 
 class BaseWriter:
     def __init__(self, filename, path, content):
         self.filename = filename
         self.path = path
-        if isinstance(content, (list, tuple)):
-            content = content.join("\n")
-
         self.content = content
 
     @property
     def new_path(self):
         return os.path.join(self.path, self.filename)
+
+    def join_content(self, glue):
+        return glue.join(self.content)
 
     def write(self):
         raise NotImplementedError
@@ -22,11 +20,21 @@ class BaseWriter:
 
 class MarkdownWriter(BaseWriter):
     def write(self):
-        with open(self.new_path, "wb") as f:
-            f.write(self.content)
+        content = self.join_content("\n")
+
+        with open(self.new_path, "w") as f:
+            f.write(content)
 
 
 class MetadataWriter(BaseWriter):
+    def _create_meta_path(self):
+        meta_path = os.path.dirname(self.new_path)
+        if not os.path.exists(meta_path):
+            os.mkdir(meta_path)
+
     def write(self):
-        with open(self.new_path, "wb") as f:
-            yaml.dump(self.content, f)
+        content = self.join_content("\n")
+        self._create_meta_path()
+
+        with open(self.new_path, "w") as f:
+            f.write(content)

@@ -6,8 +6,7 @@ def test_version():
 
 
 class TestFileConverter:
-    def test_it_can_read_the_files(self):
-        pass
+    pass
 
 
 class TestMarkdownExtractor:
