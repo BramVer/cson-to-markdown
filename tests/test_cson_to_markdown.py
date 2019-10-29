@@ -5,6 +5,11 @@ def test_version():
     assert __version__ == "0.1.0"
 
 
+class TestFileConverter:
+    def test_it_can_read_the_files(self):
+        pass
+
+
 class TestMarkdownExtractor:
     pass
 
