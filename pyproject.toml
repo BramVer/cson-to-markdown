@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "cson-to-markdown"
+version = "0.1.0"
+description = "Extracts the markdown section from .cson files."
+authors = ["Bram Vereertbrugghen <bramvereertbrugghen@live.be>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+
+[tool.poetry.dev-dependencies]
+pytest = "^3.0"
+better-exceptions = "^0.2.2"
+pdbpp = "^0.10.2"
+autohooks = "^1.1"
+autohooks-plugin-isort = "^1.0"
+autohooks-plugin-pylint = "^1.1"
+black = {version = "^18.3-alpha.0", allows-prereleases = true}
+autohooks-plugin-black = {version = "^1.1", allows-prereleases = true}
+bpython = "^0.18.0"
+
+[tool.autohooks]
+mode = "poetry"
+pre-commit = [
+    "autohooks.plugins.isort",
+    "autohooks.plugins.pylint",
+    "autohooks.plugins.black",
+]
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 80
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
