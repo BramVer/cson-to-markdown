@@ -23,7 +23,7 @@ class Extractor:
         _from, _to = self._get_markdown_index_boundaries()
 
         first_half = self.content[0:_from]
-        second_half = self.content[(_to + 1) : -1]
+        second_half = self.content[(_to + 1) :]
 
         return first_half + second_half
 

@@ -14,4 +14,9 @@ class Config:
     }
 
     def get(self, key, _type=None):
-        return getenv(key, type=_type, default=self._config.get(key))
+        kwargs = {"name": key, "default": self._config.get(key)}
+
+        if _type:
+            kwargs["type"] = _type
+
+        return getenv(**kwargs)
