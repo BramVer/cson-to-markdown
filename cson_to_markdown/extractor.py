@@ -1,16 +1,14 @@
-MARKDOWN_START = "content: '''"
-MARKDOWN_END = "'''"
-TITLE_INDICATOR = 'title: "'
-TITLE_END_CHAR = '"'
+from cson_to_markdown.config import Config
 
 
 class Extractor:
     def __init__(self, cson_content):
+        self.config = Config()
         self.content = [l.rstrip("\n") for l in cson_content]
 
     def _get_markdown_index_boundaries(self):
-        _from = self.content.index(MARKDOWN_START)
-        _to = self.content.index(MARKDOWN_END)
+        _from = self.content.index(self.config.get("MARKDOWN_START"))
+        _to = self.content.index(self.config.get("MARKDOWN_END"))
 
         return _from, _to
 
@@ -33,8 +31,12 @@ class Extractor:
         return (self.extract_markdown(), self.extract_metadata())
 
     def get_filename(self):
-        line = next(l for l in self.content if l.startswith(TITLE_INDICATOR))
+        line = next(
+            l for l in self.content if l.startswith(self.config.get("TITLE_INDICATOR"))
+        )
 
-        title = line.replace(TITLE_INDICATOR, "").rstrip(TITLE_END_CHAR)
+        title = line.replace(self.config.get("TITLE_INDICATOR"), "").rstrip(
+            self.config.get("TITLE_END_CHAR")
+        )
 
         return title.lower().replace(" ", "_")

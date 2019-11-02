@@ -3,13 +3,9 @@ from pathlib import Path
 
 import attr
 
+from cson_to_markdown.config import Config
 from cson_to_markdown.extractor import Extractor
 from cson_to_markdown.writer import Writer
-
-CSON_EXTENSION = ".cson"
-MARKDOWN_EXTENSION = ".md"
-METADATA_EXTENSION = ".yml"
-METADATA_SUB_FOLDER = "meta"
 
 
 @attr.s
@@ -27,6 +23,7 @@ class FileConverter:
     def __init__(self, og_path=None, new_path=None):
         self.og_path = og_path
         self.new_path = new_path or self.og_path
+        self.config = Config()
 
     def convert(self):
         self._walk_over_files_in_directory_recursively()
@@ -35,7 +32,7 @@ class FileConverter:
         return os.path.basename(self.og_path)
 
     def _get_all_files_top_down(self):
-        cson_pattern = f"*{CSON_EXTENSION}"
+        cson_pattern = f"*{self.config.get('CSON_EXTENSION')}"
 
         return Path(self.og_path).rglob(cson_pattern)
 
@@ -50,11 +47,17 @@ class FileConverter:
     def _handle_cson_content(self, content):
         extr = Extractor(content)
         basename = extr.get_filename()
-        meta_path = os.path.join(METADATA_SUB_FOLDER, basename)
+        meta_path = os.path.join(self.config.get("METADATA_SUB_FOLDER"), basename)
 
         holders = [
-            ContentHolder(extr.extract_markdown(), basename, MARKDOWN_EXTENSION),
-            ContentHolder(extr.extract_metadata(), meta_path, METADATA_EXTENSION),
+            ContentHolder(
+                extr.extract_markdown(), basename, self.config.get("MARKDOWN_EXTENSION")
+            ),
+            ContentHolder(
+                extr.extract_metadata(),
+                meta_path,
+                self.config.get("METADATA_EXTENSION"),
+            ),
         ]
 
         for h in holders:

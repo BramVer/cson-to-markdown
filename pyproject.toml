@@ -8,7 +8,6 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "^3.7"
 smart-getenv = "^1.1"
-python-dotenv = "^0.10.3"
 fire = "^0.2.1"
 pyyaml = "^5.1"
 
