@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Extracts the markdown section from .cson files."
 authors = ["Bram Vereertbrugghen <bramvereertbrugghen@live.be>"]
 license = "MIT"
+homepage = "https://github.com/BramVer/cson-to-markdown"
+readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.7"
