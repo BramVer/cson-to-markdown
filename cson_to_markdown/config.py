@@ -6,11 +6,13 @@ class Config:
         "MARKDOWN_START": "content: '''",
         "MARKDOWN_END": "'''",
         "TITLE_INDICATOR": 'title: "',
-        "TITLE_END_CHAR": '"',
+        "FOLDER_INDICATOR": 'folder: "',
+        "YAML_STRING_INDICATOR": '"',
         "CSON_EXTENSION": ".cson",
         "MARKDOWN_EXTENSION": ".md",
         "METADATA_EXTENSION": ".yml",
-        "METADATA_SUB_FOLDER": "meta",
+        "METADATA_FOLDER": "meta",
+        "BNOTE_SETTINGS_FILE": "boostnote.json",
     }
 
     def get(self, key, _type=None):

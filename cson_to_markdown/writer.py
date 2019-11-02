@@ -19,7 +19,7 @@ class Writer:
     def _create_path_if_not_exists(self):
         path = os.path.dirname(self.new_path)
         if not os.path.exists(path):
-            os.mkdir(path)
+            os.makedirs(path)
 
     def write(self):
         content = self.join_content("\n")

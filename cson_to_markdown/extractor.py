@@ -30,13 +30,22 @@ class Extractor:
     def extract(self):
         return (self.extract_markdown(), self.extract_metadata())
 
-    def get_filename(self):
-        line = next(
-            l for l in self.content if l.startswith(self.config.get("TITLE_INDICATOR"))
-        )
+    def _scan_content(self, start, end=None):
+        end = end or self.config.get("YAML_STRING_INDICATOR")
 
-        title = line.replace(self.config.get("TITLE_INDICATOR"), "").rstrip(
-            self.config.get("TITLE_END_CHAR")
-        )
+        lines = [l for l in self.content if l.startswith(start)]
+        if not lines:
+            return
+
+        return lines[0].replace(start, "").rstrip(end)
+
+    def get_filename(self, fall_back=None):
+        title = self._scan_content(self.config.get("TITLE_INDICATOR"))
+        if not title:
+            title = f"NOT_FOUND_{fall_back}"
+            print(f'Title was not found in content, set to "{title}"')
 
         return title.lower().replace(" ", "_")
+
+    def get_folder_key(self, fall_back=None):
+        return self._scan_content(self.config.get("FOLDER_INDICATOR"))

@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 
@@ -20,16 +21,32 @@ class ContentHolder:
 
 
 class FileConverter:
-    def __init__(self, og_path=None, new_path=None):
+    def __init__(self, og_path, new_path=None, settings_dir=None):
+        self.config = Config()
+
         self.og_path = og_path
         self.new_path = new_path or self.og_path
-        self.config = Config()
+
+        self.folder_mapping = self._get_folder_mapping(settings_dir)
 
     def convert(self):
         self._walk_over_files_in_directory_recursively()
 
-    def _get_basename(self):
-        return os.path.basename(self.og_path)
+    def _get_folder_mapping(self, root_dir=None):
+        mapping = {}
+        _dir = root_dir or self.og_path
+
+        path = os.path.join(_dir, self.config.get("BNOTE_SETTINGS_FILE"))
+        if not os.path.exists(path):
+            return mapping
+
+        with open(path, "r") as dt:
+            data = json.load(dt)
+
+            for f in data.get("folders", []):
+                mapping[f["key"]] = f["name"]
+
+        return mapping
 
     def _get_all_files_top_down(self):
         cson_pattern = f"*{self.config.get('CSON_EXTENSION')}"
@@ -46,16 +63,23 @@ class FileConverter:
 
     def _handle_cson_content(self, content):
         extr = Extractor(content)
-        basename = extr.get_filename()
-        meta_path = os.path.join(self.config.get("METADATA_SUB_FOLDER"), basename)
+
+        base_name = extr.get_filename()
+        folder_name = self.folder_mapping.get(extr.get_folder_key(), "")
+        file_name = os.path.join(folder_name, base_name)
+        meta_name = os.path.join(
+            folder_name, self.config.get("METADATA_FOLDER"), base_name
+        )
 
         holders = [
             ContentHolder(
-                extr.extract_markdown(), basename, self.config.get("MARKDOWN_EXTENSION")
+                extr.extract_markdown(),
+                file_name,
+                self.config.get("MARKDOWN_EXTENSION"),
             ),
             ContentHolder(
                 extr.extract_metadata(),
-                meta_path,
+                meta_name,
                 self.config.get("METADATA_EXTENSION"),
             ),
         ]
