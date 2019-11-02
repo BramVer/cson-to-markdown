@@ -14,4 +14,4 @@ class Config:
     }
 
     def get(self, key, _type=None):
-        return getenv(key, type=_type) or self._config.get(key)
+        return getenv(key, type=_type, default=self._config.get(key))
