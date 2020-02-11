@@ -1,14 +1,22 @@
 from cson_to_markdown.config import Config
 
 
+class MarkdownBoundsNotFound(Exception):
+    pass
+
+
 class Extractor:
     def __init__(self, cson_content):
         self.config = Config()
         self.content = [l.rstrip("\n") for l in cson_content]
 
     def _get_markdown_index_boundaries(self):
-        _from = self.content.index(self.config.get("MARKDOWN_START"))
-        _to = self.content.index(self.config.get("MARKDOWN_END"))
+        try:
+            _from = self.content.index(self.config.get("MARKDOWN_START"))
+            _to = self.content.index(self.config.get("MARKDOWN_END"))
+        except ValueError as verr:
+            msg = f"Markdown boundary is missing in content:\n{verr}"
+            raise MarkdownBoundsNotFound(msg)
 
         return _from, _to
 

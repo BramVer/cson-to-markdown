@@ -3,7 +3,7 @@ import os
 import pytest
 
 from cson_to_markdown import __version__
-from cson_to_markdown.extractor import Extractor
+from cson_to_markdown.extractor import Extractor, MarkdownBoundsNotFound
 from cson_to_markdown.file_converter import FileConverter
 from cson_to_markdown.writer import Writer
 
@@ -79,6 +79,22 @@ class TestExtractor:
 
         assert expected_title == actual_title
 
+    def test_it_raises_when_marker_cannot_be_found(
+        self, monkeypatch, metadata_content, markdown_content
+    ):
+        monkeypatch.setenv("MARKDOWN_START", "---!")
+        monkeypatch.setenv("MARKDOWN_END", "!---")
+
+        markdown = markdown_content
+        metadata_start, metadata_end = metadata_content
+
+        extr = Extractor(metadata_start + markdown + metadata_end)
+        with pytest.raises(MarkdownBoundsNotFound):
+            extr.extract_markdown()
+
+        with pytest.raises(MarkdownBoundsNotFound):
+            extr.extract_metadata()
+
 
 class TestWriter:
     def test_it_creates_path_if_not_pressent(self, monkeypatch, tmpdir):
@@ -127,3 +143,67 @@ class TestFileConverter:
 
         assert len(new_files) == 5
         assert new_files[0][-3:] == ".md"
+
+    def test_it_skips_when_markers_not_found(
+        self, monkeypatch, tmpdir, metadata_content, markdown_content
+    ):
+        monkeypatch.setenv("TITLE_INDICATOR", "Title:  ")
+        monkeypatch.setenv("MARKDOWN_START", "---!")
+        monkeypatch.setenv("MARKDOWN_END", "!---")
+
+        og_path = tmpdir
+        new_path = os.path.join(tmpdir, "MARKDOWN_FILES")
+        content = "---!\nSomething with the markers.\n!---"
+
+        for i in range(2):
+            file = og_path.join(f"file_with_{i}.cson")
+            file.write(f"{content}\nTitle:  new_title {i}")
+
+        content = "Something without the markers."
+
+        for i in range(2):
+            file = og_path.join(f"file_without_{i}.cson")
+            file.write(f"{content}\nTitle:  new_title {i}")
+
+        converter = FileConverter(og_path, new_path)
+        converter.convert()
+
+        new_files = [
+            i
+            for i in os.listdir(new_path)
+            if not os.path.isdir(os.path.join(new_path, i))
+        ]
+
+        assert len(new_files) == 2
+
+    def test_it_skips_when_content_is_empty(
+        self, monkeypatch, tmpdir, metadata_content, markdown_content
+    ):
+        monkeypatch.setenv("TITLE_INDICATOR", "Title:  ")
+        monkeypatch.setenv("MARKDOWN_START", "---!")
+        monkeypatch.setenv("MARKDOWN_END", "!---")
+
+        og_path = tmpdir
+        new_path = os.path.join(tmpdir, "MARKDOWN_FILES")
+        content = "---!\nSomething with content markers.\n!---"
+
+        for i in range(2):
+            file = og_path.join(f"file_with_{i}.cson")
+            file.write(f"{content}\nTitle:  new_title {i}")
+
+        content = "---!\n!---"
+
+        for i in range(2):
+            file = og_path.join(f"file_without_{i}.cson")
+            file.write(f"{content}\nTitle:  new_title {i}")
+
+        converter = FileConverter(og_path, new_path)
+        converter.convert()
+
+        new_files = [
+            i
+            for i in os.listdir(new_path)
+            if not os.path.isdir(os.path.join(new_path, i))
+        ]
+
+        assert len(new_files) == 2

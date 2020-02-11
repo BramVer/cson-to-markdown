@@ -5,7 +5,7 @@ from pathlib import Path
 import attr
 
 from cson_to_markdown.config import Config
-from cson_to_markdown.extractor import Extractor
+from cson_to_markdown.extractor import Extractor, MarkdownBoundsNotFound
 from cson_to_markdown.writer import Writer
 
 
@@ -63,8 +63,15 @@ class FileConverter:
 
     def _handle_cson_content(self, content):
         extr = Extractor(content)
-
         base_name = extr.get_filename()
+
+        try:
+            markdown = extr.extract_markdown()
+            metadata = extr.extract_metadata()
+        except MarkdownBoundsNotFound:
+            print(f"Could not find MD boundaries for file {base_name}.")
+            return
+
         folder_name = self.folder_mapping.get(extr.get_folder_key(), "")
         file_name = os.path.join(folder_name, base_name)
         meta_name = os.path.join(
@@ -72,18 +79,9 @@ class FileConverter:
         )
 
         holders = [
-            ContentHolder(
-                extr.extract_markdown(),
-                file_name,
-                self.config.get("MARKDOWN_EXTENSION"),
-            ),
-            ContentHolder(
-                extr.extract_metadata(),
-                meta_name,
-                self.config.get("METADATA_EXTENSION"),
-            ),
+            ContentHolder(markdown, file_name, self.config.get("MARKDOWN_EXTENSION")),
+            ContentHolder(metadata, meta_name, self.config.get("METADATA_EXTENSION")),
         ]
-
         for h in holders:
             self._write_new_content(h)
 
